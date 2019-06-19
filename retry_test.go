@@ -22,18 +22,18 @@ import (
 func TestRetry(t *testing.T) {
 	caseCounter := make(map[string]int)
 
-	cases := map[string]struct{
-		test func()error
-		control Controller
+	cases := map[string]struct {
+		test     func() error
+		control  Controller
 		expected Errorer
-	} {
+	}{
 		"always fail 3 times": {
 			test: func() error {
 				return errors.New("boom")
 			},
 			control: &With{
-				Times: 3,
-				WaitFor: 1*time.Microsecond,
+				Times:   3,
+				WaitFor: 1 * time.Microsecond,
 			},
 			expected: func() *errorList {
 				el := newErrorList()
@@ -58,8 +58,8 @@ func TestRetry(t *testing.T) {
 				return nil
 			},
 			control: &With{
-				Times: 3,
-				WaitFor: 1*time.Microsecond,
+				Times:   3,
+				WaitFor: 1 * time.Microsecond,
 			},
 			expected: nil,
 		},
@@ -68,8 +68,8 @@ func TestRetry(t *testing.T) {
 	for caseName, c := range cases {
 		actualError := How(c.control).This(c.test)
 		if c.expected != nil {
-			if actualError.String() != c.expected.String() {
-				t.Errorf(`%s: errors did not match; expected "%s", got: "%s"`, caseName, c.expected.String(), actualError.String())
+			if actualError.Error() != c.expected.Error() {
+				t.Errorf(`%s: errors did not match; expected "%s", got: "%s"`, caseName, c.expected.Error(), actualError.Error())
 			}
 			if len(actualError.Errors()) != len(c.expected.Errors()) {
 				t.Errorf(`%s: number of errors did not match; expected "%d", got: "%d"`, caseName, len(c.expected.Errors()), len(actualError.Errors()))

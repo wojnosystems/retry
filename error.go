@@ -21,29 +21,29 @@ type errorList struct {
 
 func newErrorList() *errorList {
 	return &errorList{
-		recordedErrors: make([]error,0),
+		recordedErrors: make([]error, 0),
 	}
 }
 
-func (e *errorList)Errors() []error {
+func (e *errorList) Errors() []error {
 	return e.recordedErrors
 }
 
-func (e *errorList)String() string {
-	errList := make([]string,len(e.recordedErrors))
+func (e *errorList) Error() string {
+	errList := make([]string, len(e.recordedErrors))
 	for i, err := range e.recordedErrors {
 		errList[i] = err.Error()
 	}
-	return "retries exceeded; encountered errors: " + strings.Join(errList,", ")
+	return "retries exceeded; encountered errors: " + strings.Join(errList, ", ")
 }
 
-func (e *errorList)Last() error {
+func (e *errorList) Last() error {
 	if len(e.recordedErrors) == 0 {
 		return nil
 	}
-	return e.recordedErrors[len(e.recordedErrors) - 1]
+	return e.recordedErrors[len(e.recordedErrors)-1]
 }
 
-func (e *errorList) append(err error)  {
+func (e *errorList) append(err error) {
 	e.recordedErrors = append(e.recordedErrors, err)
 }
