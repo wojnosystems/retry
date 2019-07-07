@@ -15,12 +15,13 @@ if err != nil {
 	// log the last error encountered
 	log.Error(err.Last())
 	
-	// log all errors using default
+	// log all errors using library's default message, which joins all errors together. This is sloppy and not intended for full production use, but it's your party.
 	log.Error(err)
 	
 	// or loop through the slice of errors
-	for i := range err.Errors() {
-		anError := err.Errors()[i]
+	allErrors := err.Errors()
+	for i := range allErrors {
+		anError := allErrors[i]
 		_ = anError // do something with it
 	}
 }
@@ -65,19 +66,20 @@ Linear waits are fine for many applications, but exponential waiting is very com
 
 ```go
 // Tries at most 7 times, with back-offs:
-// 1st error: 10 seconds
-// 2nd error: 20 seconds
-// 3rd error: 40 seconds
-// 4th error: 80 seconds
-// 5th error: 160 seconds
-// 6th error: 200 seconds
-// 7th error: 200 seconds
+// 1st error: 10 seconds (total: 10 seconds)
+// 2nd error: 20 seconds (total: 30 seconds)
+// 3rd error: 40 seconds (total: 70 seconds)
+// 4th error: 80 seconds (total: 150 seconds)
+// 5th error: 160 seconds (total: 310 seconds)
+// 6th error: 200 seconds (total: 510 seconds)
+// 7th error: 200 seconds (total: 710 seconds)
+// 
 base2 := retry.ExpBase2{
 	Times: 7, 
 	Scaling: 10*time.Second,
 	AttemptTimeLimit: 200*time.Second
 }
-_ = retry.How(base2.New()).This(func(controller retry.Controller)error {
+sevenErrorsReturned := retry.How(base2.New()).This(func(controller retry.Controller)error {
 
 	return errors.New("boom!")
 })
@@ -99,7 +101,7 @@ withTimeout := retry.ExpBase2{
 }
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
-_ = retry.How(withTimeout.NewWithContext(ctx)).This(func(controller retry.Controller)error {
+fourErrorsReturned := retry.How(withTimeout.NewWithContext(ctx)).This(func(controller retry.Controller)error {
 	return errors.New("boom")
 })
 ```
