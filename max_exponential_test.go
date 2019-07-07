@@ -70,10 +70,10 @@ func TestMaxExponential_New(t *testing.T) {
 		},
 		"exponential: 10sec*2^x + 10sec (limit 50)": {
 			cfg: Exponential{
-				Base:             2,
-				Scaling:          10 * time.Second,
-				YOffset:          10 * time.Second,
-				AttemptTimeLimit: 50 * time.Second,
+				Base:               2,
+				Scaling:            10 * time.Second,
+				YOffset:            10 * time.Second,
+				MaxAttemptWaitTime: 50 * time.Second,
 			},
 			expected: []time.Duration{20 * time.Second, 30 * time.Second, 50 * time.Second, 50 * time.Second, 50 * time.Second},
 		},
@@ -99,10 +99,10 @@ func TestMaxExponential_New(t *testing.T) {
 
 func TestExpBase2_New(t *testing.T) {
 	base2Svc := ExpBase2{
-		Times:            3,
-		Scaling:          10 * time.Second,
-		AttemptTimeLimit: 100 * time.Second,
-		YOffset:          5 * time.Second,
+		Times:              3,
+		Scaling:            10 * time.Second,
+		MaxAttemptWaitTime: 100 * time.Second,
+		YOffset:            5 * time.Second,
 	}.New()
 	base2 := base2Svc.(*maxExponentialService)
 	if base2.config.Base != 2 {

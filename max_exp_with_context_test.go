@@ -37,20 +37,20 @@ func TestMaxExponentialWithContext_New(t *testing.T) {
 		},
 		"exponential: 10us*2^x + 10us (limit 50 with max exec context of 205ms)": {
 			cfg: Exponential{
-				Base:             2,
-				Scaling:          10 * time.Microsecond,
-				YOffset:          10 * time.Microsecond,
-				AttemptTimeLimit: 50 * time.Microsecond,
+				Base:               2,
+				Scaling:            10 * time.Microsecond,
+				YOffset:            10 * time.Microsecond,
+				MaxAttemptWaitTime: 50 * time.Microsecond,
 			},
 			ctxDuration: 205 * time.Microsecond,
 			expected:    []time.Duration{20 * time.Microsecond, 30 * time.Microsecond, 50 * time.Microsecond, 50 * time.Microsecond},
 		},
 		"exponential: 10us*2^x + 10us (limit 50 with max exec context of 105ms)": {
 			cfg: Exponential{
-				Base:             2,
-				Scaling:          10 * time.Microsecond,
-				YOffset:          10 * time.Microsecond,
-				AttemptTimeLimit: 50 * time.Microsecond,
+				Base:               2,
+				Scaling:            10 * time.Microsecond,
+				YOffset:            10 * time.Microsecond,
+				MaxAttemptWaitTime: 50 * time.Microsecond,
 			},
 			ctxDuration: 105 * time.Microsecond,
 			expected:    []time.Duration{20 * time.Microsecond, 30 * time.Microsecond, 50 * time.Microsecond},
@@ -73,5 +73,17 @@ func TestMaxExponentialWithContext_New(t *testing.T) {
 				t.Errorf(`exceeded context timeout, over by %v`, endAt.Sub(expectedEndAt))
 			}
 		})
+	}
+}
+
+func TestExpBase2_NewWithContext(t *testing.T) {
+	base2Svc := ExpBase2{
+		Scaling: 10 * time.Second,
+	}.NewWithContext(context.Background()).(*maxExponentialContextService)
+	if base2Svc.ctx != context.Background() {
+		t.Error("expected ctx to be background, but was not")
+	}
+	if base2Svc.config.Base != 2 {
+		t.Error("expected Base == 2, but was not")
 	}
 }

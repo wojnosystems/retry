@@ -33,8 +33,8 @@ type Exponential struct {
 	// Scaling is multiplication factor, this controls the units of the exponentiation
 	Scaling time.Duration
 
-	// AttemptTimeLimit The maximum amount of time to wait for a particular attempt (does not account for total time), regardless of the exponential equation (leave as 0 to ignore)
-	AttemptTimeLimit time.Duration
+	// MaxAttemptWaitTime The maximum amount of time to wait for a particular attempt (does not account for total time), regardless of the exponential equation (leave as 0 to ignore)
+	MaxAttemptWaitTime time.Duration
 }
 
 func (l Exponential) New() Service {
@@ -54,18 +54,18 @@ type ExpBase2 struct {
 	// Scaling is multiplication factor, this controls the units of the exponentiation
 	Scaling time.Duration
 
-	// AttemptTimeLimit The maximum amount of time to wait for a particular attempt (does not account for total time), regardless of the exponential equation (leave as 0 to ignore)
-	AttemptTimeLimit time.Duration
+	// MaxAttemptWaitTime The maximum amount of time to wait for a particular attempt (does not account for total time), regardless of the exponential equation (leave as 0 to ignore)
+	MaxAttemptWaitTime time.Duration
 }
 
 func (l ExpBase2) New() Service {
 	return &maxExponentialService{
 		config: Exponential{
-			Times:            l.Times,
-			YOffset:          l.YOffset,
-			Scaling:          l.Scaling,
-			AttemptTimeLimit: l.AttemptTimeLimit,
-			Base:             2,
+			Times:              l.Times,
+			YOffset:            l.YOffset,
+			Scaling:            l.Scaling,
+			MaxAttemptWaitTime: l.MaxAttemptWaitTime,
+			Base:               2,
 		},
 	}
 }
@@ -108,9 +108,9 @@ func (c maxExponentialService) waitDuration() time.Duration {
 	// add the YOffset
 	waitFor = waitFor + c.config.YOffset
 
-	if c.config.AttemptTimeLimit != 0 && waitFor > c.config.AttemptTimeLimit {
+	if c.config.MaxAttemptWaitTime != 0 && waitFor > c.config.MaxAttemptWaitTime {
 		// Constrain the wait time
-		waitFor = c.config.AttemptTimeLimit
+		waitFor = c.config.MaxAttemptWaitTime
 	}
 	return waitFor
 }

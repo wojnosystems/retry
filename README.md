@@ -7,7 +7,10 @@ A simple, but powerfully-configurable way to retry things that may fail.
 The Retry.MaxAttempts creates a retry service that aborts once so many attempts have occurred. It has a linear time back-off and will wait 10 seconds after each failure in which a retry should follow (it will not trigger a wait state if the function will not perform an additional try).
 
 ```go
-err := retry.How(&retry.MaxAttempts{Times: 3, WaitFor: 10*time.Seconds}.New()).This( func(controller retry.Controller)error {
+err := retry.How(&retry.MaxAttempts{
+        Times: 3, 
+        WaitFor: 10*time.Seconds,
+	}.New()).This( func(controller retry.Controller)error {
 	// Retry something!
 	return errors.New("boom")
 })
@@ -33,7 +36,10 @@ This allows you to create the configuration once, and re-use it for multiple ins
 
 ```go
 // Re-usable
-threeTimes := retry.MaxAttempts{Times: 3, WaitFor: 10*time.Second}
+threeTimes := retry.MaxAttempts{
+	Times: 3, 
+	WaitFor: 10*time.Second,
+}
 
 err = retry.How(threeTimes.New()).This(func(controller retry.Controller)error {
 	// Retry something!
@@ -75,9 +81,9 @@ Linear waits are fine for many applications, but exponential waiting is very com
 // 7th error: 200 seconds (total: 710 seconds)
 // 
 base2 := retry.ExpBase2{
-	Times: 7, 
-	Scaling: 10*time.Second,
-	AttemptTimeLimit: 200*time.Second
+	Times: 7, // maximum number of attempts to make, after which an error will be returned
+	Scaling: 10*time.Second, // The starting point for our exponential back waits
+	MaxAttemptWaitTime: 200*time.Second, // no single attempt may wait longer than 200 seconds after a failure
 }
 sevenErrorsReturned := retry.How(base2.New()).This(func(controller retry.Controller)error {
 
@@ -97,7 +103,8 @@ The exponential configuration controls the time waiting for EACH attempt, but if
 // 4th error: 80 seconds (total: 150 seconds/2.5 minutes)
 // 5th error: never occurs, context causes an abort
 withTimeout := retry.ExpBase2{
-	Scaling: 10*time.Second
+	Scaling: 10*time.Second,
+	// No need for MaxAttemptWaitTime
 }
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 defer cancel()
