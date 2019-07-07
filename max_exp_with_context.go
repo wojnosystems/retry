@@ -14,44 +14,43 @@
 
 package retry
 
-type basic struct {
-	svc Service
-}
+import (
+	"context"
+	"time"
+)
 
-// How creates a new retry service
-func How(svc Service) Retrier {
-	return &basic{
-		svc: svc,
+// NewWithContext defines a way to set a context to determine a maximum attempt among all calls
+// the context limits the total amount of time yielded, regardless of each invocation of the test
+func (l Exponential) NewWithContext(ctx context.Context) Service {
+	return &maxExponentialContextService{
+		maxExponentialService: maxExponentialService{
+			config: l,
+		},
+		ctx: ctx,
 	}
 }
 
-// This invokes the developer's method to retry
-func (b *basic) This(test func(controller ServiceController) error) Errorer {
-	var errorList ErrorAppender
-	// Retry until we should not
-	for true {
-		// Perform the action under test, this is the thing the developer would like to retry
-		err := test(b.svc.Controller())
-		// Notify our service that the try/retry has occurred
-		b.svc.NotifyRetry()
-		if err != nil {
-			if errorList == nil {
-				// factory a new error list, if not yet created (lazy-create)
-				errorList = b.svc.NewErrorList()
-			}
-			// Got an error, record it
-			errorList.Append(err)
-			// Wait, but only if we should try again
-			if b.svc.ShouldTry() {
-				b.svc.Yield()
-			} else {
-				return errorList
-			}
-		} else {
-			// success, no need to retry
-			return nil
-		}
+func (l ExpBase2) NewWithContext(ctx context.Context) Service {
+	mes := l.New().(*maxExponentialService)
+	return &maxExponentialContextService{
+		maxExponentialService: *mes,
+		ctx:                   ctx,
 	}
-	// should be unreachable, but go is complaining that there is no return
-	return nil
+}
+
+type maxExponentialContextService struct {
+	maxExponentialService
+	ctx context.Context
+}
+
+// Wait will cause go to sleep for the WaitFor
+func (c *maxExponentialContextService) Yield() {
+	waitFor := c.waitDuration()
+	select {
+	case <-c.ctx.Done():
+		// context is done, abort, never yield
+		c.Abort()
+	case <-time.After(waitFor):
+		// time expired, ok to proceed
+	}
 }

@@ -6,7 +6,8 @@
 // to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above
 // copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR Scaling PARTICULAR PURPOSE AND NON-INFRINGEMENT.
 // IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
 // AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
@@ -29,6 +30,7 @@ func (e *errorList) Errors() []error {
 	return e.recordedErrors
 }
 
+// Error is a default message. Override to make your own.
 func (e *errorList) Error() string {
 	errList := make([]string, len(e.recordedErrors))
 	for i, err := range e.recordedErrors {
@@ -37,6 +39,7 @@ func (e *errorList) Error() string {
 	return "retries exceeded; encountered errors: " + strings.Join(errList, ", ")
 }
 
+// Last gets the final error returned by the retry, this is special because it's usually the one you want
 func (e *errorList) Last() error {
 	if len(e.recordedErrors) == 0 {
 		return nil
@@ -44,6 +47,7 @@ func (e *errorList) Last() error {
 	return e.recordedErrors[len(e.recordedErrors)-1]
 }
 
-func (e *errorList) append(err error) {
+// Append adds an error to the list
+func (e *errorList) Append(err error) {
 	e.recordedErrors = append(e.recordedErrors, err)
 }

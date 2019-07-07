@@ -6,7 +6,8 @@
 // to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above
 // copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR Scaling PARTICULAR PURPOSE AND NON-INFRINGEMENT.
 // IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
 // AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
@@ -15,31 +16,21 @@ package retry
 
 import "time"
 
-type With struct {
-	// Times is the maximum number of retries to allow before returning a failure
-	Times int
+// MaxAttempts will try a function X number of times, waiting WaitFor in between each failed attempt
+type MaxAttempts struct {
+	// MaxAttempts is the maximum number of retries to allow before returning a failure
+	Times uint
 	// WaitFor is the time to wait between failures
 	WaitFor time.Duration
-	// triesSoFar is how many times we've waited between failures & the number of failures that have occurred
-	triesSoFar int
 }
 
-// ShouldTry will execute unless all of our retries allotted have failed
-func (c *With)ShouldTry() bool {
-	return c.triesSoFar < c.Times
-}
-
-// Wait will cause go to sleep for the WaitFor
-func (c *With) WaitIfShouldTry() {
-	c.triesSoFar++
-	if c.ShouldTry() {
-		time.Sleep(c.WaitFor)
-	}
-}
-
-func (c *With) New() Controller {
-	return &With{
-		Times: c.Times,
-		WaitFor: c.WaitFor,
+// New creates a new MaxAttempts. New is needed to create a counter state required for this invocation
+func (l MaxAttempts) New() Service {
+	return &maxExponentialService{
+		config: Exponential{
+			Times:   l.Times,
+			YOffset: l.WaitFor,
+			Base:    0,
+		},
 	}
 }
